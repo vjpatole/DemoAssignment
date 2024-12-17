@@ -21,7 +21,7 @@ sonarqube {
 
         // Source and Test directories
         property("sonar.sources", "src/main/") // Specify the main source code folder
-        property("sonar.tests", "src/test/")  // Specify the test folder
+        property("sonar.tests", "src/test/,src/androidTest/")  // Specify the test folder
 
         // Reports and Binaries
         property("sonar.android.lint.report", "build/reports/lint-results.xml")
