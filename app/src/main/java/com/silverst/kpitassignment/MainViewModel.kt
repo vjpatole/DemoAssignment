@@ -26,12 +26,19 @@ class MainViewModel: ViewModel() {
     private val _totalPrice = MutableStateFlow(0)
     val totalPrice :StateFlow<Int> = _totalPrice
 
+    private val _validationError = MutableStateFlow("")
+    val validationError: StateFlow<String> get() = _validationError
+
     fun updateInputText(text: String) {
         _inputText.value = text
     }
 
     fun updateInputDiscount(discountValue: String){
         _inputDiscount.value = discountValue
+    }
+
+    fun updateProductPrices(productPriceList: List<Int>){
+        _productPrices.value = productPriceList
     }
 
     fun findAllSubsets(inputStr: String) {
@@ -61,35 +68,49 @@ class MainViewModel: ViewModel() {
         _inputText.value = ""
         _inputDiscount.value = ""
         _subsets.value = emptyList()
+        _productPrices.value = emptyList()
     }
 
-    fun getProductsPrices() = listOf(
-        10,
-        20
-    )
-
     fun calculateTotalPrice(inputStr: String) {
-        val discount = inputStr.toInt()
-        val prices = getProductsPrices()
-        // Check if the list is empty or discount is invalid
-        if (prices.isEmpty() || discount < 0 || discount > 100) {
-            _totalPrice.value = 0
-        } else {
-            // Find the most expensive item
-            val maxPrice = prices.maxOrNull() ?: 0
 
-            // Calculate the discount amount for the most expensive item
-            val discountAmount = maxPrice * discount / 100.0
-
-            // Calculate the total price with the discount applied
-            val totalPrice = prices.sum() - discountAmount
-
-            if (totalPrice <= 0){
-                _totalPrice.value = 0
-            }else{
-                // Return the total price rounded down to the nearest integer
-                _totalPrice.value = totalPrice.toInt()
-            }
+        if (inputStr.isEmpty()){
+            _validationError.value = "Enter Discount between 1-100"
+            return
         }
+
+        val discount = inputStr.toInt()
+        val prices = productPrices.value
+
+
+        // Validate discount constraint
+        if (discount < 0 || discount > 100) {
+            _validationError.value = "Discount must be between 0 and 100."
+            return
+        }
+
+        // Validate price constraints
+        if (prices.isEmpty() || prices.size >= 100) {
+            _validationError.value = "Number of products must be between 1 and 99."
+            return
+        }
+
+        if (prices.any { it <= 0 || it >= 100_000 }) {
+            _validationError.value = "Price of each product must be between 1 and 99,999."
+            return
+        }
+
+        _validationError.value = ""
+
+        // Find the most expensive product
+        val maxPrice = prices.maxOrNull() ?: 0
+
+        // Calculate the discount amount for the most expensive item
+        val discountAmount = (maxPrice * discount) / 100.0
+
+        // Calculate the total price after applying the discount
+        val total = prices.sum() - discountAmount
+
+        // Return the total rounded down to the nearest integer
+        _totalPrice.value = total.toInt()
     }
 }

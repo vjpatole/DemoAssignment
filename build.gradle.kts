@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.compose) apply false
     //id("org.sonarqube") version "4.4.1.3373"
     id ("org.sonarqube") version "3.5.0.2730"
-    id ("jacoco")
 }
 
 sonarqube {
@@ -28,11 +27,50 @@ sonarqube {
         property("sonar.java.binaries", "build/intermediates/javac/debug/classes")
 
         // Exclude specific directories or files (optional)
-        property("sonar.exclusions", "**/build/**,**/*.png,**/*.jpg")
+        property("sonar.exclusions", "**/build/**,**/*.png,**/*.jpg,**/com/silverst/kpitassignment/presentation/**,**/com/silverst/kpitassignment/MainActivity.*")
 
         // Include Kotlin source files (if using Kotlin)
         property("sonar.kotlin.file.suffixes", ".kt,.kts")
-        property("sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
         property("sonar.java.coveragePlugin", "jacoco")
+
+        println("JACOCO PATH FOR REPORT: ${layout.projectDirectory.dir("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml").asFile}")
+
+        property("sonar.coverage.jacoco.xmlReportPaths", layout.projectDirectory.dir("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml").asFile.toString())
+        //property("sonar.coverage.jacoco.xmlReportPaths", layout.buildDirectory.dir("app/build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml"))
     }
+}
+
+
+tasks.register("jacocoTestReport", JacocoReport::class) {
+    dependsOn("testDebugUnitTest") // Ensure unit tests run before generating the report
+
+    reports {
+        xml.required.set(true)  // Generate XML report for SonarQube
+        html.required.set(true) // Optionally generate an HTML report
+    }
+
+    val fileFilter = listOf(
+        "**/R.class",
+        "**/R$*.class",
+        "**/BuildConfig.*",
+        "**/Manifest*.*",
+        "**/*Test*.*",
+        "android/**/*.*",
+        "**/com/silverst/kpitassignment/presentation/**",
+        "**/com/silverst/kpitassignment/MainActivity.*"
+    )
+
+    val debugTree = fileTree(layout.buildDirectory.dir("intermediates/javac/debug").get()) {
+        exclude(fileFilter)
+    }
+    val kotlinTree = fileTree(layout.buildDirectory.dir("tmp/kotlin-classes/debug").get()) {
+        exclude(fileFilter)
+    }
+    val mainSrc = "${project.projectDir}/src/main/java"
+
+    sourceDirectories.setFrom(files(mainSrc))
+    classDirectories.setFrom(files(debugTree, kotlinTree))
+    executionData.setFrom(fileTree(layout.buildDirectory.dir("app/build/reports/jacoco/jacocoTestReport").get()) {
+        include("testDebugUnitTest.exec")
+    })
 }

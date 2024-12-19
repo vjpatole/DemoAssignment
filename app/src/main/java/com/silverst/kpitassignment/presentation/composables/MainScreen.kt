@@ -18,6 +18,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -51,6 +52,9 @@ fun AppMainScreen(
     val discountNumber by mainViewModel.inputDiscount.collectAsState()
 
     val totalPrice by mainViewModel.totalPrice.collectAsState()
+    val validationError by mainViewModel.validationError.collectAsState()
+
+    mainViewModel.updateProductPrices(listOf(10, 2000))
 
     Column(modifier = Modifier.fillMaxSize().padding(top = 30.dp, bottom = 50.dp)) {
         Box(modifier = Modifier
@@ -148,12 +152,22 @@ fun AppMainScreen(
                         value = totalPrice.toString(),
                         onValueChange = {},
                         readOnly = true,
+                        isError = validationError.isNotEmpty(),
                         label = { Text("Output") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .heightIn(min = 56.dp)
                             .verticalScroll(rememberScrollState())
                     )
+
+                    if (validationError.isNotEmpty()){
+                        Text(
+                            text = validationError,
+                            color = MaterialTheme.colorScheme.error,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(start = 16.dp, top = 4.dp)
+                        )
+                    }
                 }
             }
         }

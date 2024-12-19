@@ -89,12 +89,15 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling:1.5.1")
     debugImplementation("androidx.compose.ui:ui-test-manifest:1.5.1")
 
-    implementation("org.jacoco:org.jacoco.core:0.8.11")
+    testImplementation("org.jacoco:org.jacoco.core:0.8.11")
 }
+
 
 jacoco {
     toolVersion = "0.8.11" // Use the latest version
     reportsDirectory.set(layout.buildDirectory.dir("reports/jacoco"))
 }
+
+
 
 
